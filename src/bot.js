@@ -1,0 +1,20 @@
+import 'dotenv/config';
+import cron from 'node-cron';
+import { Telegraf, Markup } from 'telegraf';
+import { prisma } from './db.js';
+const bot = new Telegraf(process.env.BOT_TOKEN);
+const appButton = Markup.keyboard([[Markup.button.webApp('✂️ jcute_snip — Navbat olish', process.env.WEBAPP_URL)]]).resize();
+bot.start((ctx) => ctx.reply('Assalomu alaykum! jcute_snip online navbat tizimiga xush kelibsiz.', appButton));
+bot.command('admin', (ctx) => String(ctx.from.id) === String(process.env.ADMIN_TELEGRAM_ID) ? ctx.reply('Admin panel Mini App ichida ochiladi.', appButton) : ctx.reply('Bu buyruq faqat admin uchun.'));
+async function notify(text) { const users = await prisma.user.findMany({ select: { telegramId: true } }); await Promise.allSettled(users.map((u) => bot.telegram.sendMessage(String(u.telegramId), text))); }
+cron.schedule('0 10 * * *', async () => {
+  const users = await prisma.user.findMany({ include: { bookings: { where: { status: 'COMPLETED' }, orderBy: { date: 'desc' }, take: 1 } } });
+  const now = new Date();
+  for (const user of users) {
+    const last = user.bookings[0];
+    if (last && Math.floor((now - last.date) / 86400000) === 20) await bot.telegram.sendMessage(String(user.telegramId), 'Oxirgi tashrifingizga 20 kun bo‘ldi. Balki soch turmagingizni yangilash vaqti kelgandir? ✂️');
+    if (user.birthDate.getUTCMonth() === now.getUTCMonth() && user.birthDate.getUTCDate() === now.getUTCDate()) await bot.telegram.sendMessage(String(user.telegramId), `Tug‘ilgan kuningiz muborak, ${user.firstName}! 🎉`);
+  }
+}, { timezone: 'Asia/Tashkent' });
+bot.launch();
+process.once('SIGINT', () => bot.stop('SIGINT')); process.once('SIGTERM', () => bot.stop('SIGTERM'));

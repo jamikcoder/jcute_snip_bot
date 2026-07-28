@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String    @id @default(cuid())
+  telegramId      BigInt    @unique
+  firstName       String
+  lastName        String
+  phone           String
+  birthDate       DateTime
+  registeredAt    DateTime  @default(now())
+  bookings        Booking[]
+}
+
+model Booking {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date            DateTime
+  startTime       String
+  endTime         String
+  services        String
+  totalPrice      Int
+  totalMinutes    Int
+  paymentMethod   PaymentMethod
+  contactPhone    String
+  status          BookingStatus @default(BOOKED)
+  cancellationReason String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  @@index([date, startTime])
+  @@index([userId, status])
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+}
+
+enum BookingStatus {
+  BOOKED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<title>jcute_snip — cyber barber bot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.44.0/iconfont/tabler-icons.min.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root{
+    --bg: #050807;
+    --bg2: #070c0a;
+    --teal: #16E8A0;
+    --teal-dim: #0F6E56;
+    --blue: #29C5FF;
+    --glass: rgba(255,255,255,0.045);
+    --glass-border: rgba(22,232,160,0.28);
+    --text: #EAF6F1;
+    --text-dim: #8FA39A;
+  }
+  html,body{ background: var(--bg); overflow-x:hidden; }
+  body{
+    font-family: 'Inter', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    padding: 60px 20px 80px;
+    position: relative;
+  }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+  .display{ font-family:'Space Grotesk', sans-serif; }
+
+  /* animated grid + glow orbs backdrop */
+  .bg-grid{
+    position: fixed; inset:0; z-index:0;
+    background-image:
+      linear-gradient(rgba(22,232,160,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(22,232,160,0.05) 1px, transparent 1px);
+    background-size: 42px 42px;
+    animation: gridDrift 18s linear infinite;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 40%, transparent 90%);
+  }
+  @keyframes gridDrift{ from{ background-position: 0 0; } to{ background-position: 42px 42px; } }
+
+  .orb{ position:fixed; border-radius:50%; filter: blur(90px); z-index:0; opacity:0.35; }
+  .orb-1{ width:420px; height:420px; background: var(--teal); top:-140px; left:-120px; animation: floatA 14s ease-in-out infinite; }
+  .orb-2{ width:380px; height:380px; background: var(--blue); bottom:-160px; right:-100px; animation: floatB 16s ease-in-out infinite; }
+  @keyframes floatA{ 0%,100%{ transform: translate(0,0); } 50%{ transform: translate(40px,30px); } }
+  @keyframes floatB{ 0%,100%{ transform: translate(0,0); } 50%{ transform: translate(-30px,-40px); } }
+
+  .header{ position:relative; z-index:2; text-align:center; margin-bottom: 56px; }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.12em;
+    color: var(--teal); text-transform: uppercase;
+    border:1px solid var(--glass-border); border-radius:100px; padding:6px 14px;
+    background: var(--glass); margin-bottom:18px;
+  }
+  .dot{ width:6px; height:6px; border-radius:50%; background: var(--teal); box-shadow: 0 0 8px 2px var(--teal); animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{ opacity:1; } 50%{ opacity:0.35; } }
+  .header h1{
+    font-size: clamp(28px, 5vw, 46px); font-weight:700; letter-spacing:-0.02em;
+    background: linear-gradient(120deg, #fff 30%, var(--teal) 75%, var(--blue) 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .header p{ color: var(--text-dim); margin-top:10px; font-size:14px; }
+
+  .stage{
+    position:relative; z-index:2;
+    display:flex; flex-wrap:wrap; justify-content:center; gap:32px;
+    max-width: 1180px; margin: 0 auto;
+  }
+
+  /* phone frame */
+  .phone{
+    width: 300px; border-radius: 40px; padding: 14px;
+    background: linear-gradient(160deg, #0d1512, #060908);
+    border: 1px solid rgba(22,232,160,0.18);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.6), 0 30px 60px -20px rgba(0,0,0,0.8), 0 0 40px -10px rgba(22,232,160,0.15);
+    position: relative;
+  }
+  .phone-screen{
+    background: #060a08;
+    border-radius: 28px;
+    overflow: hidden;
+    position: relative;
+    min-height: 560px;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .notch{
+    position:absolute; top:8px; left:50%; transform: translateX(-50%);
+    width:80px; height:18px; background:#000; border-radius:100px; z-index:5;
+  }
+  .scanline{
+    position:absolute; left:0; right:0; height:80px; z-index:4; pointer-events:none;
+    background: linear-gradient(180deg, transparent, rgba(22,232,160,0.14), transparent);
+    animation: scan 4.5s ease-in-out infinite;
+  }
+  @keyframes scan{ 0%{ top:-80px; } 55%{ top:100%; } 100%{ top:100%; } }
+
+  .screen-pad{ position:relative; z-index:2; padding: 40px 16px 20px; }
+
+  .badge-name{ text-align:center; margin-bottom:18px; }
+  .avatar-ring{
+    width:56px; height:56px; border-radius:50%; margin: 0 auto 10px;
+    display:flex; align-items:center; justify-content:center;
+    background: radial-gradient(circle at 30% 30%, #16E8A0, #0F6E56);
+    box-shadow: 0 0 0 1px rgba(22,232,160,0.4), 0 0 24px 4px rgba(22,232,160,0.35);
+    animation: ringPulse 2.4s ease-in-out infinite;
+  }
+  @keyframes ringPulse{ 0%,100%{ box-shadow:0 0 0 1px rgba(22,232,160,0.4), 0 0 18px 2px rgba(22,232,160,0.28);} 50%{ box-shadow:0 0 0 1px rgba(22,232,160,0.6), 0 0 30px 8px rgba(22,232,160,0.45);} }
+  .badge-name .name{ font-family:'Space Grotesk'; font-weight:600; font-size:15px; }
+  .badge-name .sub{ color: var(--text-dim); font-size:11px; margin-top:2px; }
+
+  .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+  .glass-card{
+    background: var(--glass); border:1px solid var(--glass-border); border-radius:16px;
+    padding: 16px 12px; text-align:center; backdrop-filter: blur(14px);
+    transition: transform .25s ease, box-shadow .25s ease;
+  }
+  .glass-card i{ font-size:22px; color: var(--teal); }
+  .glass-card p{ font-size:11.5px; margin-top:8px; font-weight:500; }
+  .glass-card.wide{ grid-column: 1 / -1; display:flex; align-items:center; justify-content:center; gap:8px; padding:14px; }
+
+  .footer-links{ display:flex; justify-content:center; gap:18px; margin-top:20px; }
+  .footer-links span{ font-size:10.5px; color: var(--text-dim); display:flex; align-items:center; gap:5px; }
+
+  /* screen 2: service select */
+  .label-sm{ font-family:'JetBrains Mono'; font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase; color: var(--text-dim); margin-bottom:10px; }
+  .service-row{
+    display:flex; justify-content:space-between; align-items:center;
+    border-radius:12px; padding:11px 13px; margin-bottom:7px;
+    font-size:12.5px;
+  }
+  .service-row.active{
+    background: linear-gradient(120deg, rgba(22,232,160,0.18), rgba(41,197,255,0.10));
+    border:1px solid rgba(22,232,160,0.45);
+    box-shadow: 0 0 18px -4px rgba(22,232,160,0.4);
+  }
+  .service-row.active .name{ color:#D6FBEF; font-weight:600; }
+  .service-row.active .price{ color: var(--teal); font-family:'JetBrains Mono'; font-size:11px; }
+  .service-row.off{ background: rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); opacity:0.4; }
+  .service-row.idle{ background: var(--glass); border:1px solid rgba(255,255,255,0.07); }
+  .service-row.idle .price{ color: var(--text-dim); font-family:'JetBrains Mono'; font-size:11px; }
+
+  .total-bar{
+    display:flex; justify-content:space-between; align-items:center;
+    border-top:1px solid rgba(255,255,255,0.08); margin-top:12px; padding-top:12px;
+  }
+  .total-bar .val{ font-family:'JetBrains Mono'; color: var(--teal); font-weight:600; font-size:13px; text-shadow: 0 0 12px rgba(22,232,160,0.5); }
+
+  .slots{ display:grid; grid-template-columns: repeat(4,1fr); gap:6px; margin-top:8px; }
+  .slot{ text-align:center; padding:9px 0; border-radius:9px; font-family:'JetBrains Mono'; font-size:11px; background: rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); color:#5c6b64; }
+  .slot.pick{ background: var(--teal); color:#04241A; font-weight:600; box-shadow: 0 0 20px -3px rgba(22,232,160,0.7); animation: slotGlow 2s ease-in-out infinite; }
+  @keyframes slotGlow{ 0%,100%{ box-shadow: 0 0 14px -3px rgba(22,232,160,0.55);} 50%{ box-shadow: 0 0 26px 0px rgba(22,232,160,0.85);} }
+
+  .cta{
+    margin-top:18px; text-align:center; padding:13px; border-radius:12px; font-weight:600; font-size:13px;
+    background: linear-gradient(100deg, #16E8A0, #29C5FF);
+    color:#03211a; box-shadow: 0 8px 24px -6px rgba(22,232,160,0.5);
+  }
+
+  /* screen 3: admin */
+  .stat-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+  .stat-card{ background: var(--glass); border:1px solid var(--glass-border); border-radius:14px; padding:12px; backdrop-filter: blur(14px); }
+  .stat-card .lbl{ font-size:10px; color: var(--text-dim); font-family:'JetBrains Mono'; text-transform:uppercase; letter-spacing:.06em; }
+  .stat-card .num{ font-family:'Space Grotesk'; font-size:19px; font-weight:600; margin-top:4px; color:#EAF6F1; }
+  .stat-card .num.accent{ color: var(--teal); text-shadow:0 0 14px rgba(22,232,160,0.45); }
+
+  .queue-row{ display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:11px; background: rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); margin-bottom:6px; }
+  .queue-row .qavatar{ width:28px; height:28px; border-radius:50%; background: rgba(22,232,160,0.16); border:1px solid rgba(22,232,160,0.4); flex-shrink:0; }
+  .queue-row .qname{ font-size:12px; font-weight:500; }
+  .queue-row .qtime{ margin-left:auto; font-family:'JetBrains Mono'; font-size:11px; color: var(--teal); }
+
+  .admin-actions{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px; }
+  .admin-actions .a{ text-align:center; padding:10px 4px; border-radius:11px; font-size:11px; background: var(--glass); border:1px solid rgba(255,255,255,0.08); color: var(--text-dim); }
+  .admin-actions .a i{ display:block; font-size:16px; color: var(--teal); margin-bottom:5px; }
+
+  .caption{ text-align:center; margin-top:16px; font-size:11px; color: var(--text-dim); font-family:'JetBrains Mono'; letter-spacing:.04em; }
+
+  @media (prefers-reduced-motion: reduce){
+    .bg-grid, .orb, .dot, .scanline, .avatar-ring, .slot.pick { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="header">
+  <div class="eyebrow"><span class="dot"></span> live booking system</div>
+  <h1 class="display">jcute_snip</h1>
+  <p>cyber barber studio — telegram mini app</p>
+</div>
+
+<div class="stage">
+
+  <!-- SCREEN 1: HOME -->
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="notch"></div>
+      <div class="scanline"></div>
+      <div class="screen-pad">
+        <div class="badge-name">
+          <div class="avatar-ring"><i class="ti ti-scissors" style="color:#03211a;font-size:24px;"></i></div>
+          <p class="name display">jcute_snip</p>
+          <p class="sub mono">aura beauty studio</p>
+        </div>
+        <div class="grid2">
+          <div class="glass-card"><i class="ti ti-calendar-plus"></i><p>Navbat olish</p></div>
+          <div class="glass-card"><i class="ti ti-list-details"></i><p>Barcha ro'yhatlar</p></div>
+          <div class="glass-card"><i class="ti ti-user-circle"></i><p>Shaxsiy kabinet</p></div>
+          <div class="glass-card"><i class="ti ti-map-pin"></i><p>Lokatsiya</p></div>
+          <div class="glass-card wide"><i class="ti ti-cash" style="font-size:18px;"></i><p style="margin:0;">Narxlar</p></div>
+        </div>
+        <div class="footer-links">
+          <span class="mono"><i class="ti ti-brand-instagram"></i> jcute_snip</span>
+          <span class="mono"><i class="ti ti-phone"></i> +998 94 215 41 24</span>
+        </div>
+      </div>
+    </div>
+    <p class="caption">01 — bosh menyu</p>
+  </div>
+
+  <!-- SCREEN 2: SERVICE SELECT -->
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="notch"></div>
+      <div class="scanline"></div>
+      <div class="screen-pad">
+        <p class="label-sm">servisni tanlang</p>
+        <div class="service-row active"><span class="name">Soch olish (katta)</span><span class="price">50 000 · 1s</span></div>
+        <div class="service-row off"><span class="name">Okantovka</span><span style="font-size:10px;color:#5c6b64;">soch olishga kiradi</span></div>
+        <div class="service-row active"><span class="name">Soch bo'yash</span><span class="price">30 000 · 40d</span></div>
+        <div class="service-row idle"><span class="name">Soqol olish</span><span class="price">25 000 · 30d</span></div>
+        <div class="service-row idle"><span class="name">Depilatsiya</span><span class="price">35 000 · 30d</span></div>
+
+        <div class="total-bar">
+          <span class="mono" style="font-size:11px;color:var(--text-dim);">jami</span>
+          <span class="val">80 000 so'm · 1s 40d</span>
+        </div>
+
+        <p class="label-sm" style="margin-top:16px;">bo'sh vaqtlar — bugun</p>
+        <div class="slots">
+          <div class="slot">14:00</div>
+          <div class="slot">14:30</div>
+          <div class="slot pick">15:30</div>
+          <div class="slot">16:00</div>
+        </div>
+
+        <div class="cta">davom etish →</div>
+      </div>
+    </div>
+    <p class="caption">02 — servis va vaqt</p>
+  </div>
+
+  <!-- SCREEN 3: ADMIN -->
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="notch"></div>
+      <div class="scanline"></div>
+      <div class="screen-pad">
+        <p class="label-sm">admin panel</p>
+        <div class="stat-grid">
+          <div class="stat-card"><p class="lbl">bugungi mijoz</p><p class="num accent">7</p></div>
+          <div class="stat-card"><p class="lbl">bugungi daromad</p><p class="num">410k</p></div>
+          <div class="stat-card"><p class="lbl">oylik mijoz</p><p class="num">184</p></div>
+          <div class="stat-card"><p class="lbl">oylik daromad</p><p class="num accent">9.2M</p></div>
+        </div>
+
+        <p class="label-sm">navbatdagilar</p>
+        <div class="queue-row"><div class="qavatar"></div><span class="qname">Aziz Karimov</span><span class="qtime">15:30</span></div>
+        <div class="queue-row"><div class="qavatar"></div><span class="qname">Bekzod Yusupov</span><span class="qtime">16:00</span></div>
+        <div class="queue-row"><div class="qavatar"></div><span class="qname">Sardor Nazarov</span><span class="qtime">16:30</span></div>
+
+        <div class="admin-actions">
+          <div class="a"><i class="ti ti-speakerphone"></i>Habar yuborish</div>
+          <div class="a"><i class="ti ti-refresh"></i>Navbatni reset</div>
+          <div class="a"><i class="ti ti-calendar-off"></i>Dam olish kuni</div>
+          <div class="a"><i class="ti ti-chart-bar"></i>Statistika</div>
+        </div>
+      </div>
+    </div>
+    <p class="caption">03 — admin nazorati</p>
+  </div>
+
+</div>
+
+</body>
+</html>
