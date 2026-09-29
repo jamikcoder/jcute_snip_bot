@@ -1,12 +1,13 @@
+// src\bot.js
 import 'dotenv/config';
 import cron from 'node-cron';
 import { Telegraf, Markup } from 'telegraf';
 import { prisma } from './db.js';
 
-const bot = new Telegraf("8972538099:AAEtxQd_0QottTDKdbOPtS-ETMpspnHC93g");
+const bot = new Telegraf(process.env.BOT_TOKEN);
 
 const appButton = Markup.keyboard([
-  [Markup.button.webApp('✂️ jcute_snip — Navbat olish', 'https://video-overkill-evaluator.ngrok-free.dev')]
+  [Markup.button.webApp('✂️ jcute_snip — Navbat olish', process.env.WEBAPP_URL)]
 ]).resize();
 
 bot.start((ctx) =>
@@ -14,7 +15,7 @@ bot.start((ctx) =>
 );
 
 bot.command('admin', (ctx) =>
-  String(ctx.from.id) === String(process.env.ADMIN_TELEGRAM_ID || '719139730')
+  String(ctx.from.id) === String(process.env.ADMIN_TELEGRAM_ID)
     ? ctx.reply('Admin panel Mini App ichida ochiladi.', appButton)
     : ctx.reply('Bu buyruq faqat admin uchun.')
 );
@@ -33,7 +34,7 @@ cron.schedule(
       const users = await prisma.user.findMany({
         include: {
           bookings: {
-            where: { status: 'BOOKED' },
+            where: { status: 'COMPLETED' },
             orderBy: { date: 'desc' },
             take: 1
           }

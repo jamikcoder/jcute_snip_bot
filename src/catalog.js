@@ -7,10 +7,12 @@ export const SERVICES = [
   { id: 'coloring', name: "Soch bo'yash", price: 30000, minutes: 40 },
   { id: 'depilation', name: 'Depilatsiya', price: 35000, minutes: 30 }
 ];
+
 export const byId = (id) => SERVICES.find((item) => item.id === id);
+
 export function totalFor(serviceIds) {
   const selected = serviceIds.map(byId);
-  if (selected.some((item) => !item)) throw new Error('Noma’lum servis tanlandi.');
+  if (selected.some((item) => !item)) throw new Error("Noma'lum servis tanlandi.");
   if (serviceIds.includes('lineup') && (serviceIds.includes('adult_haircut') || serviceIds.includes('kids_haircut'))) {
     throw new Error('Soch olish ichiga okantovka kiradi.');
   }
