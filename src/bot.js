@@ -2,79 +2,49 @@ import 'dotenv/config';
 import cron from 'node-cron';
 import { Telegraf, Markup } from 'telegraf';
 import { prisma } from './db.js';
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const bot = new Telegraf("8972538099:AAEtxQd_0QottTDKdbOPtS-ETMpspnHC93g");
+// ES Module muhitida __dirname o'rnini bosuvchi o'zgaruvchilar
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+// 1. Telegram Bot sozlamalari
+const bot = new Telegraf(process.env.BOT_TOKEN);
+
+// Web App tugmasi
+const WEBAPP_URL = process.env.WEBAPP_URL || 'https://jcute-snip-bot.onrender.com';
 const appButton = Markup.keyboard([
-  [Markup.button.webApp('✂️ jcute_snip — Navbat olish', 'https://video-overkill-evaluator.ngrok-free.dev')]
+  [Markup.button.webApp('✂️ jcute_snip — Navbat olish', WEBAPP_URL)]
 ]).resize();
 
 bot.start((ctx) =>
   ctx.reply('Assalomu alaykum! jcute_snip online navbat tizimiga xush kelibsiz.', appButton)
 );
 
-bot.command('admin', (ctx) =>
-  String(ctx.from.id) === String(process.env.ADMIN_TELEGRAM_ID || '719139730')
-    ? ctx.reply('Admin panel Mini App ichida ochiladi.', appButton)
-    : ctx.reply('Bu buyruq faqat admin uchun.')
-);
+// Botni ishga tushirish (Long Polling)
+bot.launch().then(() => {
+  console.log('Bot muvaffaqiyatli ishga tushdi!');
+});
 
-async function notify(text) {
-  const users = await prisma.user.findMany({ select: { telegramId: true } });
-  await Promise.allSettled(
-    users.map((u) => bot.telegram.sendMessage(String(u.telegramId), text))
-  );
-}
+// 2. Express Web Server sozlamalari (Render Port-Binding va Web App uchun)
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-cron.schedule(
-  '0 10 * * *',
-  async () => {
-    try {
-      const users = await prisma.user.findMany({
-        include: {
-          bookings: {
-            where: { status: 'BOOKED' },
-            orderBy: { date: 'desc' },
-            take: 1
-          }
-        }
-      });
+// Loyiha ildiz papkasidagi (root) statik fayllarni ochiqlash (CSS, JS, images)
+const rootDir = path.join(__dirname, '..');
+app.use(express.static(rootDir));
 
-      const now = new Date();
+// Web App uchun index.html faylini yuborish
+app.get('/', (req, res) => {
+  res.sendFile(path.join(rootDir, 'index.html'));
+});
 
-      for (const user of users) {
-        const last = user.bookings[0];
-        if (last?.date) {
-          const daysSince = Math.floor((now - last.date) / 86400000);
-          if (daysSince === 20) {
-            await bot.telegram.sendMessage(
-              String(user.telegramId),
-              "Oxirgi tashrifingizga 20 kun bo'ldi. Balki soch turmagingizni yangilash vaqti kelgandir? ✂️"
-            );
-          }
-        }
+app.listen(PORT, () => {
+  console.log(`Server ${PORT}-portda tinglamoqda...`);
+});
 
-        if (user.birthDate) {
-          const birthMonth = user.birthDate.getUTCMonth();
-          const birthDay = user.birthDate.getUTCDate();
-          const nowMonth = now.getUTCMonth();
-          const nowDay = now.getUTCDate();
-
-          if (birthMonth === nowMonth && birthDay === nowDay) {
-            await bot.telegram.sendMessage(
-              String(user.telegramId),
-              "Tug'ilgan kuningiz muborak, " + (user.firstName || 'mijoz') + '! 🎉'
-            );
-          }
-        }
-      }
-    } catch (err) {
-      console.error('Cron job xatosi:', err.message);
-    }
-  },
-  { timezone: 'Asia/Tashkent' }
-);
-
-bot.launch();
+// Process toxtaganda botni xavfsiz to'xtatish
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
