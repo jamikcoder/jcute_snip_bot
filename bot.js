@@ -8,7 +8,7 @@ import express from 'express';
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
 const appButton = Markup.keyboard([
-  [Markup.button.webApp('✂️ jcute_snip — Navbat olish', 'https://jcute-snip-bot.onrender.com')]
+  [Markup.button.webApp('✂️ jcute_snip — Navbat olish', 'https://jcute-snip-bot1.onrender.com')]
 ]).resize();
 
 bot.start((ctx) =>
