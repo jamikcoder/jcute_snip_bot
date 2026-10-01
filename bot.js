@@ -7,7 +7,7 @@ import { prisma } from './db.js';
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
 const appButton = Markup.keyboard([
-  [Markup.button.webApp('✂️ jcute_snip — Navbat olish', process.env.WEBAPP_URL)]
+  [Markup.button.webApp('✂️ jcute_snip — Navbat olish', 'https://jcute-snip-bot.onrender.com')]
 ]).resize();
 
 bot.start((ctx) =>
@@ -79,3 +79,15 @@ cron.schedule(
 bot.launch();
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
+
+const express = require('express');
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.get('/', (req, res) => {
+  res.send('jcute-snip-bot is running live!');
+});
+
+app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
+});
