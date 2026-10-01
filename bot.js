@@ -3,6 +3,7 @@ import 'dotenv/config';
 import cron from 'node-cron';
 import { Telegraf, Markup } from 'telegraf';
 import { prisma } from './db.js';
+import express from 'express';
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
@@ -80,7 +81,7 @@ bot.launch();
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
 
-const express = require('express');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
