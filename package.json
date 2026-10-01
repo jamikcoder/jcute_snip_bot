@@ -15,9 +15,11 @@
     "@prisma/client": "^6.1.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
-    "express": "^4.21.2",
+    "express": "^4.22.3",
     "node-cron": "^4.0.7",
     "telegraf": "^4.16.3"
   },
-  "devDependencies": { "prisma": "^6.1.0" }
+  "devDependencies": {
+    "prisma": "^6.1.0"
+  }
 }
