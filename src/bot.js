@@ -14,7 +14,7 @@ const __dirname = path.dirname(__filename);
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
 // Web App tugmasi
-const WEBAPP_URL = process.env.WEBAPP_URL || 'https://jcute-snip-bot.onrender.com';
+const WEBAPP_URL = process.env.WEBAPP_URL || 'https://jcute-snip-bot1.onrender.com';
 const appButton = Markup.keyboard([
   [Markup.button.webApp('✂️ jcute_snip — Navbat olish', WEBAPP_URL)]
 ]).resize();
