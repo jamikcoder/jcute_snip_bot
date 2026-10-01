@@ -1,7 +1,5 @@
 import 'dotenv/config';
-import cron from 'node-cron';
 import { Telegraf, Markup } from 'telegraf';
-import { prisma } from './db.js';
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -10,12 +8,12 @@ import fs from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Root (loyihaning asosiy) papkasi va src papkasi yo'llari
+// Root va public papkalari yo'li
 const rootDir = path.resolve(__dirname, '..');
+const publicDir = path.join(rootDir, 'public');
 
 // 1. Telegram Bot sozlamalari
 const bot = new Telegraf(process.env.BOT_TOKEN);
-
 const WEBAPP_URL = process.env.WEBAPP_URL || 'https://jcute-snip-bot1.onrender.com';
 
 const appButton = Markup.keyboard([
@@ -34,21 +32,22 @@ bot.launch().then(() => {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Hamma statik fayllarni (CSS, JS, rasm) ochiqlash
+// Public va Root papkalardagi tumanga mos statik fayllarni (CSS, JS, images) ulash
+app.use(express.static(publicDir));
 app.use(express.static(rootDir));
 app.use(express.static(__dirname));
 
-// Bosh sahifaga kirilganda (Web App ochiqganda) index.html yuborish
+// Web App ochilganda public/index.html faylini yuborish
 app.get('/', (req, res) => {
+  const publicIndexPath = path.join(publicDir, 'index.html');
   const rootIndexPath = path.join(rootDir, 'index.html');
-  const srcIndexPath = path.join(__dirname, 'index.html');
 
-  if (fs.existsSync(rootIndexPath)) {
+  if (fs.existsSync(publicIndexPath)) {
+    res.sendFile(publicIndexPath);
+  } else if (fs.existsSync(rootIndexPath)) {
     res.sendFile(rootIndexPath);
-  } else if (fs.existsSync(srcIndexPath)) {
-    res.sendFile(srcIndexPath);
   } else {
-    res.status(404).send('xatolik: index.html fayli topilmadi! Iltimos, fayl nomini va joylashuvini tekshiring.');
+    res.status(404).send('xatolik: index.html fayli public/ yoki root papkadan topilmadi!');
   }
 });
 
