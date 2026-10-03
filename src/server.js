@@ -8,20 +8,20 @@ import cors from 'cors';
 import { prisma } from './db.js';
 import { SERVICES, LEGACY, HAIRCUT_IDS, totalFor, AppError } from './catalog.js';
 import { availableSlots, lunchWindow, dayToUtc, toTime, fromTime } from './schedule.js';
-import { broadcast, sendTelegram } from './telegram.js';
+import { broadcast, broadcastLang, sendTelegram } from './telegram.js';
 import { startBot } from './bot.js';
 
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TZ = 'Asia/Tashkent';
-const ADMIN_ID = String(process.env.ADMIN_TELEGRAM_ID || '719139730');
+const ADMIN_ID = String(process.env.ADMIN_TELEGRAM_ID || '719139730').replace(/["'\s]/g, '');
 const CARD = '9860 0201 2138 9496';
 const CARD_OWNER = 'Jamshid Boishov';
 const LOCATION_URL = 'https://www.google.com/maps/search/?api=1&query=Aura+Beauty+Studio+Almalyk';
 const DEFAULT_BIRTH = new Date('2000-01-01T00:00:00.000Z');
 
 app.use(cors());
-app.use(express.json({ limit: '8mb' }));
+app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(__dirname, '../public')));
 
 // ===== Yordamchilar =====
@@ -37,6 +37,7 @@ const tzMinutes = () => {
 const isValidDateString = (s) =>
   typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(new Date(s + 'T00:00:00.000Z').getTime());
 const isValidTime = (s) => typeof s === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(s);
+const headerLang = (req) => (['uz', 'ru'].includes(req.header('x-lang')) ? req.header('x-lang') : null);
 
 function normalizePhone(value) {
   let d = String(value || '').replace(/\D/g, '');
@@ -67,7 +68,7 @@ const wrap = (fn) => (req, res) =>
   fn(req, res).catch((e) => {
     if (e instanceof AppError) return res.status(400).json({ error: e.message });
     console.error('Server xatosi:', req.method, req.path, e);
-    res.status(500).json({ error: 'Server xatosi. Birozdan keyin urinib ko\'ring.' });
+    res.status(500).json({ error: "Server xatosi. Birozdan keyin urinib ko'ring." });
   });
 
 // Bir vaqtda ikki kishi bir slotni olib qo'ymasligi uchun navbat (mutex)
@@ -108,7 +109,6 @@ function verifyInitData(initData) {
 function resolveTgId(req) {
   const id = verifyInitData(req.header('x-telegram-init-data'));
   if (id) return id;
-  // Faqat test uchun: Render env'ga INSECURE_HEADER_AUTH=true qo'ysangiz ishlaydi
   if (process.env.INSECURE_HEADER_AUTH === 'true') {
     const h = req.header('x-telegram-id');
     if (h && /^\d{1,15}$/.test(h)) return h;
@@ -126,13 +126,22 @@ const auth = (req, res, next) =>
 const adminOnly = (req, res, next) =>
   req.tgId && req.tgId === ADMIN_ID ? next() : res.status(403).json({ error: 'Admin ruxsati kerak.' });
 
+async function currentUser(req) {
+  const user = await prisma.user.findUnique({ where: { telegramId: BigInt(req.tgId) } });
+  if (!user) throw new AppError("Avval ro'yxatdan o'ting.");
+  return user;
+}
+
 // ===== Habarnomalar =====
 async function notify({ user = null, type, title, body, titleRu = null, bodyRu = null, telegram = true }) {
   await prisma.notification.create({
     data: { userId: user ? user.id : null, type, title, body, titleRu, bodyRu }
   });
   if (user && telegram) {
-    sendTelegram(user.telegramId, `${title}\n${body}`).catch(() => {});
+    const ru = user.lang === 'ru';
+    const tt = ru && titleRu ? titleRu : title;
+    const bb = ru && bodyRu ? bodyRu : body;
+    sendTelegram(user.telegramId, `${tt}\n${bb}`).catch(() => {});
   }
 }
 
@@ -141,8 +150,10 @@ const notifWhere = (user) => ({
 });
 
 // ===== Ishonchlilik =====
+const counted = (list) => list.filter((b) => b.countedInStats !== false);
+
 function computeReliability(bookings) {
-  const events = bookings
+  const events = counted(bookings)
     .filter((b) => ['COMPLETED', 'CANCELLED', 'NO_SHOW'].includes(b.status))
     .sort((a, b) => a.updatedAt - b.updatedAt);
   let value = 100;
@@ -199,13 +210,20 @@ app.get('/api/config', (req, res) => {
 });
 
 app.get('/api/me', auth, wrap(async (req, res) => {
-  const user = await prisma.user.findUnique({
+  let user = await prisma.user.findUnique({
     where: { telegramId: BigInt(req.tgId) },
     include: { bookings: true }
   });
   if (!user) return res.status(404).json({ error: 'Profil topilmadi.' });
 
-  const completed = user.bookings.filter((b) => b.status === 'COMPLETED');
+  const hl = headerLang(req);
+  if (hl && hl !== user.lang) {
+    await prisma.user.update({ where: { id: user.id }, data: { lang: hl } });
+    user.lang = hl;
+  }
+
+  const done = counted(user.bookings);
+  const completed = done.filter((b) => b.status === 'COMPLETED');
   const haircutVisits = completed.filter((b) => {
     try { return JSON.parse(b.services).some((id) => HAIRCUT_IDS.includes(id)); } catch { return false; }
   }).length;
@@ -243,11 +261,12 @@ app.post('/api/register', auth, wrap(async (req, res) => {
   const phone = normalizePhone(req.body.phone);
   if (!phone) throw new AppError("Telefon raqamini to'liq kiriting: +998 XX XXX XX XX");
 
+  const lang = headerLang(req) || 'uz';
   const tgId = BigInt(req.tgId);
   await prisma.user.upsert({
     where: { telegramId: tgId },
-    update: { firstName, lastName, phone },
-    create: { telegramId: tgId, firstName, lastName, phone, birthDate: DEFAULT_BIRTH }
+    update: { firstName, lastName, phone, lang },
+    create: { telegramId: tgId, firstName, lastName, phone, lang, birthDate: DEFAULT_BIRTH }
   });
   res.json({ ok: true });
 }));
@@ -282,8 +301,7 @@ app.post('/api/bookings', auth, wrap(async (req, res) => {
   if (!contactPhone) throw new AppError("Aloqa raqamini to'liq kiriting: +998 XX XXX XX XX");
 
   const totals = totalFor(services);
-  const user = await prisma.user.findUnique({ where: { telegramId: BigInt(req.tgId) } });
-  if (!user) throw new AppError("Avval ro'yxatdan o'ting.");
+  const user = await currentUser(req);
 
   const booking = await withLock(async () => {
     const day = await computeDay(date, totals.minutes);
@@ -322,7 +340,7 @@ app.post('/api/bookings/:id/cancel', auth, wrap(async (req, res) => {
   const booking = await prisma.booking.findUnique({ where: { id: req.params.id }, include: { user: true } });
   if (!booking) throw new AppError('Navbat topilmadi.');
   const isOwner = String(booking.user.telegramId) === req.tgId;
-  if (!isOwner && req.tgId !== ADMIN_ID) return res.status(403).json({ error: 'Ruxsat yo\'q.' });
+  if (!isOwner && req.tgId !== ADMIN_ID) return res.status(403).json({ error: "Ruxsat yo'q." });
 
   const upd = await prisma.booking.updateMany({
     where: { id: booking.id, status: 'BOOKED' },
@@ -332,10 +350,29 @@ app.post('/api/bookings/:id/cancel', auth, wrap(async (req, res) => {
 
   sendTelegram(
     ADMIN_ID,
-    `❗ Navbat bekor qilindi\n${booking.user.firstName} ${booking.user.lastName}\n${dateKey(booking.date)} ${booking.startTime}\nSabab: ${reason}`
+    `❗ Navbat bekor qilindi\n${booking.user.firstName} ${booking.user.lastName} (${booking.user.phone})\n${dateKey(booking.date)} ${booking.startTime}\nSabab: ${reason}`
   ).catch(() => {});
 
   if (isOwner) await reliabilityAlert(booking.userId);
+
+  // Bo'sh vaqt ochilgani haqida hammaga xabar (har kimga o'z tilida)
+  if (dateKey(booking.date) >= tzDate()) {
+    const dd = dateKey(booking.date).split('-').reverse().join('.');
+    const note = {
+      type: 'SLOT',
+      title: "✂️ Bo'sh vaqt ochildi",
+      body: `${dd} kuni soat ${booking.startTime} dagi navbat bekor qilindi, kelishingiz mumkin!`,
+      titleRu: '✂️ Освободилось время',
+      bodyRu: `Запись на ${dd} в ${booking.startTime} отменена, вы можете прийти!`
+    };
+    await prisma.notification.create({ data: note });
+    broadcastLang(
+      `${note.title}\n${note.body}`,
+      `${note.titleRu}\n${note.bodyRu}`,
+      booking.user.telegramId
+    ).catch(() => {});
+  }
+
   res.json({ ok: true });
 }));
 
@@ -415,7 +452,40 @@ app.post('/api/notifications/seen', auth, wrap(async (req, res) => {
   res.json({ ok: true });
 }));
 
-// ===== AI yordamchi (Gemini) =====
+// ===== Izohlar (baholash) =====
+app.get('/api/reviews', auth, wrap(async (req, res) => {
+  const user = await currentUser(req);
+  const [items, agg, mine] = await Promise.all([
+    prisma.review.findMany({
+      include: { user: { select: { firstName: true } } },
+      orderBy: { updatedAt: 'desc' },
+      take: 100
+    }),
+    prisma.review.aggregate({ _avg: { rating: true }, _count: { rating: true } }),
+    prisma.review.findUnique({ where: { userId: user.id } })
+  ]);
+  res.json({
+    items: items.map((r) => ({ id: r.id, name: r.user.firstName, rating: r.rating, text: r.text, createdAt: r.updatedAt })),
+    avg: agg._avg.rating ? Math.round(agg._avg.rating * 10) / 10 : 0,
+    count: agg._count.rating,
+    mine: mine ? { rating: mine.rating, text: mine.text } : null
+  });
+}));
+
+app.post('/api/reviews', auth, wrap(async (req, res) => {
+  const user = await currentUser(req);
+  const rating = Number(req.body.rating);
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) throw new AppError('Baholash 1 dan 5 gacha bo\'lishi kerak.');
+  const text = String(req.body.text || '').trim().slice(0, 500);
+  await prisma.review.upsert({
+    where: { userId: user.id },
+    update: { rating, text },
+    create: { userId: user.id, rating, text }
+  });
+  res.json({ ok: true });
+}));
+
+// ===== AI yordamchi (Gemini, faqat matnli chat) =====
 const aiLast = new Map();
 const AI_SYSTEM = `Sen "jcute_snip" barbershop (Almalyk, Aura Beauty Studio) ning AI yordamchisisan.
 Vazifang: mijozlarning soch, soqol, teri parvarishi, soch to'kilishi, shampun va kosmetika vositalari, soch turmagi va barber xizmatlari bo'yicha savollariga professional, aniq va mas'uliyat bilan javob berish.
@@ -423,14 +493,30 @@ Qoidalar:
 - Ishonchli, ilmiy asoslangan ma'lumotlarga tayan (dermatologiya, trixologiya tavsiyalari). Taxmin qilma, bilmasang ochiq ayt.
 - Tibbiy tashxis qo'yma. Jiddiy simptomlar (kuchli to'kilish, yara, og'riq, yallig'lanish) bo'lsa, shifokor (dermatolog/trixolog) ga murojaat qilishni maslahat ber.
 - Aniq brend reklamasi qilma; tarkib va faol moddalarga e'tibor ber (masalan ketokonazol, minoksidil kabi vositalar uchun shifokor bilan maslahatlashishni eslat).
-- Rasm yuborilsa, soch/teri/soch turmagi holatini ehtiyotkorlik bilan tahlil qil.
 - Mavzudan tashqari savollarga muloyim qilib, o'z yo'nalishingni eslat.
 - Javoblar qisqa, tushunarli, amaliy bo'lsin. Narx va band vaqtlarni o'zing to'qima, ular uchun ilovadagi "Narxlar" va "Navbat olish" bo'limlariga yo'naltir.`;
 
+app.get('/api/ai-history', auth, wrap(async (req, res) => {
+  const user = await currentUser(req);
+  const rows = await prisma.aiMessage.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: 'desc' },
+    take: 40
+  });
+  res.json({ items: rows.reverse().map((m) => ({ role: m.role, text: m.text })) });
+}));
+
+app.delete('/api/ai-history', auth, wrap(async (req, res) => {
+  const user = await currentUser(req);
+  await prisma.aiMessage.deleteMany({ where: { userId: user.id } });
+  res.json({ ok: true });
+}));
+
 app.post('/api/ai-assistant', auth, wrap(async (req, res) => {
   const key = process.env.GEMINI_API_KEY;
-  if (!key) return res.status(503).json({ error: 'AI hozircha sozlanmagan.' });
+  if (!key) return res.status(503).json({ error: 'AI hozircha sozlanmagan (GEMINI_API_KEY yo\'q).' });
 
+  const user = await currentUser(req);
   const now = Date.now();
   if (now - (aiLast.get(req.tgId) || 0) < 3000) {
     return res.status(429).json({ error: 'Biroz kuting va qayta yuboring.' });
@@ -441,24 +527,15 @@ app.post('/api/ai-assistant', auth, wrap(async (req, res) => {
   if (!message) throw new AppError('Xabar matnini yozing.');
   const lang = req.body.lang === 'ru' ? 'Rus tilida' : "O'zbek tilida (lotin yozuvida)";
 
-  const contents = [];
-  const history = Array.isArray(req.body.history) ? req.body.history.slice(-8) : [];
-  for (const h of history) {
-    const text = String(h?.text || '').slice(0, 2000);
-    if (!text) continue;
-    contents.push({ role: h.role === 'model' ? 'model' : 'user', parts: [{ text }] });
-  }
+  const past = (await prisma.aiMessage.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: 'desc' },
+    take: 10
+  })).reverse();
+  while (past.length && past[0].role !== 'user') past.shift();
 
-  const parts = [{ text: message }];
-  const img = req.body.imageBase64;
-  if (typeof img === 'string' && img.startsWith('data:image/') && img.length < 6_000_000) {
-    const comma = img.indexOf(',');
-    const mime = img.slice(5, img.indexOf(';'));
-    if (comma > 0 && /^image\/(png|jpe?g|webp)$/.test(mime)) {
-      parts.push({ inlineData: { mimeType: mime, data: img.slice(comma + 1) } });
-    }
-  }
-  contents.push({ role: 'user', parts });
+  const contents = past.map((m) => ({ role: m.role === 'model' ? 'model' : 'user', parts: [{ text: m.text }] }));
+  contents.push({ role: 'user', parts: [{ text: message }] });
 
   const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
   let r;
@@ -469,22 +546,26 @@ app.post('/api/ai-assistant', auth, wrap(async (req, res) => {
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: `${AI_SYSTEM}\nJavobni ${lang} yoz.` }] },
         contents,
-        generationConfig: { temperature: 0.6, maxOutputTokens: 1200 }
+        generationConfig: { temperature: 0.6, maxOutputTokens: 2048 }
       }),
       signal: AbortSignal.timeout(40000)
     });
   } catch (e) {
     console.error('Gemini ulanish xatosi:', e.message);
-    return res.status(502).json({ error: 'AI javob bermadi. Qayta urinib ko\'ring.' });
+    return res.status(502).json({ error: "AI javob bermadi. Qayta urinib ko'ring." });
   }
 
   if (!r.ok) {
     console.error('Gemini xatosi:', r.status, (await r.text()).slice(0, 300));
-    return res.status(502).json({ error: 'AI hozir band. Birozdan keyin urinib ko\'ring.' });
+    return res.status(502).json({ error: "AI hozir band. Birozdan keyin urinib ko'ring." });
   }
   const data = await r.json();
   const reply = data.candidates?.[0]?.content?.parts?.map((p) => p.text || '').join('').trim();
-  res.json({ reply: reply || "Kechirasiz, bu savolga javob bera olmadim. Savolni boshqacha yozib ko'ring." });
+  if (!reply) return res.json({ reply: "Kechirasiz, bu savolga javob bera olmadim. Savolni boshqacha yozib ko'ring." });
+
+  await prisma.aiMessage.create({ data: { userId: user.id, role: 'user', text: message, createdAt: new Date() } });
+  await prisma.aiMessage.create({ data: { userId: user.id, role: 'model', text: reply, createdAt: new Date(Date.now() + 1) } });
+  res.json({ reply });
 }));
 
 // ===== ADMIN API =====
@@ -502,6 +583,50 @@ app.get('/api/admin/overview', auth, adminOnly, wrap(async (_req, res) => {
     prisma.booking.count({ where: { status: 'BOOKED' } })
   ]);
   res.json({ totalUsers, today: todayC, month: monthC, year: yearC, active: activeC });
+}));
+
+app.get('/api/admin/users', auth, adminOnly, wrap(async (_req, res) => {
+  const users = await prisma.user.findMany({
+    select: { id: true, firstName: true, lastName: true, phone: true }
+  });
+  const collator = new Intl.Collator(['uz', 'ru', 'en'], { sensitivity: 'base' });
+  users.sort((a, b) => collator.compare(`${a.firstName} ${a.lastName}`, `${b.firstName} ${b.lastName}`));
+  res.json({ users });
+}));
+
+app.get('/api/admin/cancelled', auth, adminOnly, wrap(async (_req, res) => {
+  const rows = await prisma.booking.findMany({
+    where: { status: 'CANCELLED' },
+    include: { user: true },
+    orderBy: { updatedAt: 'desc' },
+    take: 30
+  });
+  res.json({
+    items: rows.map((b) => ({
+      id: b.id,
+      date: dateKey(b.date),
+      startTime: b.startTime,
+      endTime: b.endTime,
+      firstName: b.user.firstName,
+      lastName: b.user.lastName,
+      phone: b.user.phone,
+      reason: b.cancellationReason || '',
+      at: b.updatedAt
+    }))
+  });
+}));
+
+app.post('/api/admin/reset-stats', auth, adminOnly, wrap(async (req, res) => {
+  const userId = req.body.userId ? String(req.body.userId) : null;
+  await prisma.booking.updateMany({
+    where: { ...(userId ? { userId } : {}), status: { in: ['COMPLETED', 'CANCELLED', 'NO_SHOW'] } },
+    data: { countedInStats: false }
+  });
+  const r = await prisma.user.updateMany({
+    where: userId ? { id: userId } : {},
+    data: { loyaltyCount: 0 }
+  });
+  res.json({ ok: true, users: r.count });
 }));
 
 app.get('/api/admin/active', auth, adminOnly, wrap(async (_req, res) => {
@@ -555,7 +680,7 @@ app.patch('/api/admin/bookings/:id/status', auth, adminOnly, wrap(async (req, re
           user: booking.user,
           type: 'LOYALTY',
           title: '🎁 Chegirma',
-          body: 'Tabriklaymiz! Siz chegirmaga ega bo\'ldingiz.',
+          body: "Tabriklaymiz! Siz chegirmaga ega bo'ldingiz.",
           titleRu: '🎁 Скидка',
           bodyRu: 'Поздравляем! Вы получили скидку.'
         });
@@ -613,7 +738,7 @@ app.post('/api/admin/day-off', auth, adminOnly, wrap(async (req, res) => {
     bodyRu: `${date}${rangeRu} — ${reason}`
   };
   await prisma.notification.create({ data: note });
-  broadcast(`${note.title}\n${note.body}\n\n${note.titleRu}\n${note.bodyRu}`).catch(() => {});
+  broadcastLang(`${note.title}\n${note.body}`, `${note.titleRu}\n${note.bodyRu}`).catch(() => {});
 
   res.json({ ok: true, conflicts });
 }));
@@ -638,7 +763,7 @@ app.use('/api', (_req, res) => res.status(404).json({ error: 'Topilmadi.' }));
 app.get('*', (_req, res) => res.sendFile(path.join(__dirname, '../public/index.html')));
 
 app.use((err, _req, res, _next) => {
-  if (err?.type === 'entity.too.large') return res.status(413).json({ error: 'Rasm juda katta. Kichikroq rasm yuboring.' });
+  if (err?.type === 'entity.too.large') return res.status(413).json({ error: 'Xabar juda katta.' });
   console.error('Kutilmagan xato:', err);
   res.status(err?.status || 500).json({ error: 'Server xatosi.' });
 });

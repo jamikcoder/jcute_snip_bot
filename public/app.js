@@ -16,7 +16,7 @@ const I18N = {
     regTitle: "Ro'yxatdan o'tish", regDesc: "Navbat olish uchun ma'lumotlaringizni kiriting.",
     firstName: 'Ism', lastName: 'Familiya', phone: 'Telefon raqam', continue: 'Davom etish →',
     menuBook: 'Navbat olish', menuLists: 'Barcha navbatlar', menuCabinet: 'Shaxsiy kabinet', menuPrices: 'Narxlar',
-    menuAi: 'AI Assistent', menuNotifs: 'Habarnomalar', menuLocation: 'Lokatsiya', menuAdmin: 'Admin panel',
+    menuAi: 'AI Assistent', menuNotifs: 'Habarnomalar', menuReviews: 'Izohlar', menuLocation: 'Lokatsiya', menuAdmin: 'Admin panel',
     back: 'Orqaga', som: "so'm", hr: 'soat', min: 'daqiqa',
     pickDate: 'Sanani tanlang', pickServices: 'Xizmatlarni tanlang', pickTime: 'Vaqtni tanlang',
     total: 'Jami', payment: "To'lov turi", cash: 'Naqd', card: 'Karta orqali',
@@ -26,7 +26,7 @@ const I18N = {
     lineupIncluded: 'soch olishga kiradi',
     curlAlert: "Agar soch ham oldirish kerak bo'lsa, uni ham tanlang.",
     pickServiceFirst: 'Avval xizmat tanlang.', noSlots: "Bu xizmat uchun bo'sh vaqt yo'q.",
-    busy: 'band', dayOffMsg: 'Bu kun dam olish kuni.', dayOffPart: "Dam olish vaqti:",
+    busy: 'band', dayOffMsg: 'Bu kun dam olish kuni.', dayOffPart: 'Dam olish vaqti:',
     lunchLabel: 'Tushlik', lunchMoved: 'Tushlik vaqti suriladi:', lunchWillMove: 'Bu navbat tufayli tushlik suriladi:',
     selectDate: 'Sana tanlang', selectTime: 'Vaqtni tanlang', selectService: 'Kamida bitta xizmat tanlang.',
     bookingOk: 'Navbat muvaffaqiyatli band qilindi! ✅',
@@ -36,20 +36,30 @@ const I18N = {
     cabinetTitle: 'Shaxsiy kabinet', reliability: 'Ishonchlilik darajasi', reliabilityLow: "Ishonchlilik past! Iltimos, mas'uliyatli bo'ling.",
     statSpent: 'Jami sarflangan', statHair: 'Soch xizmatlari', statVisits: 'Tashriflar',
     loyaltyTitle: 'Chegirma indikatori', loyaltyDesc: "60 000 so'mdan kam bo'lmagan xizmat har safar +1. 10 ta bo'lganda chegirma beriladi.",
-    activeBooking: 'Faol navbat', lastBooking: 'Oxirgi navbat', noBookingYet: "Hali navbat olinmagan.",
+    activeBooking: 'Faol navbat', lastBooking: 'Oxirgi navbat', noBookingYet: 'Hali navbat olinmagan.',
     cancel: 'Bekor qilish', cancelTitle: 'Navbatni bekor qilish', cancelReason: 'Bekor qilish sababini yozing...',
     cancelConfirm: 'Bekor qilishni tasdiqlash', close: 'Yopish', cancelOk: 'Navbat bekor qilindi.',
     reasonLabel: 'Sabab', language: 'Til', status_BOOKED: 'Faol', status_COMPLETED: 'Yakunlangan', status_CANCELLED: 'Bekor', status_NO_SHOW: 'Kelmadi',
     notifTitle: 'Habarnomalar', noNotifs: 'Habarnomalar yo‘q.',
-    aiTitle: 'jcute_snip yordamchi', aiDesc: "Soch, soqol, teri parvarishi va boshqa savollaringizni yozing. Rasm ham yuborishingiz mumkin.",
-    aiPlaceholder: 'Savolingizni yozing...', aiImage: 'Rasm yuborildi',
+    aiTitle: 'jcute_snip yordamchi', aiDesc: 'Soch, soqol, teri parvarishi va boshqa savollaringizni yozing.',
+    aiPlaceholder: 'Savolingizni yozing...', aiClear: 'Chat tarixini tozalash', aiCleared: 'Tarix tozalandi.',
+    reviewsTitle: 'Izohlar', reviewsDesc: "Xizmatimizni baholang. Barcha mijozlar izohlarni ko'ra oladi, faqat ismingiz ko'rinadi.",
+    reviewPh: 'Fikringizni yozing...', reviewSend: 'Yuborish', reviewPick: 'Yulduzchani tanlang.', reviewOk: 'Rahmat! Izohingiz saqlandi.',
+    noReviews: 'Hozircha izohlar yo‘q.', allReviews: 'Barcha izohlar', outOf: '5 dan',
     adminTitle: 'Admin panel', aTotalUsers: "Ro'yxatdan o'tganlar", aToday: 'Bugun qabul', aMonth: 'Bu oy', aYear: 'Bu yil',
     aActive: 'Faol navbatlar', aNoActive: "Faol navbatlar yo'q.", aArrived: 'Keldi', aNoShow: 'Kelmadi', aPast: "o'tgan",
     aDayTotal: 'Kun jami', aClients: 'mijoz', aDayOff: 'Dam olish kunini belgilash', aDate: 'Sana', aFrom: 'Dan (ixtiyoriy)', aTo: 'Gacha (ixtiyoriy)',
-    aComment: "Izoh (hamma foydalanuvchiga yuboriladi)", aSetDayOff: "Belgilash va xabar yuborish", aDayOffList: 'Belgilangan dam olish kunlari',
+    aComment: 'Izoh (hamma foydalanuvchiga yuboriladi)', aSetDayOff: 'Belgilash va xabar yuborish', aDayOffList: 'Belgilangan dam olish kunlari',
     aDelete: "O'chirish", aBroadcast: 'Hammaga xabar yuborish', aBroadcastPh: 'Xabar matni...', aSend: 'Yuborish',
-    aSent: 'foydalanuvchiga yuborilmoqda.', aConflict: 'ta faol navbat shu vaqtga to‘g‘ri keladi!',
+    aSent: 'foydalanuvchiga yuborilmoqda.', aConflict: "ta faol navbat shu vaqtga to'g'ri keladi!",
     aDayOffOk: 'Dam olish kuni belgilandi.', aDeleted: "O'chirildi.", aStatusOk: 'Baholandi.', aAskArrived: 'Mijoz keldimi?', aAskNoShow: 'Mijoz kelmadimi?',
+    aCancelled: 'Bekor qilingan navbatlar', aNoCancelled: "Bekor qilingan navbatlar yo'q.", aReason: 'Sabab',
+    aUsers: "Ro'yxatdan o'tgan mijozlar", aNoUsers: "Mijozlar yo'q.",
+    aResetTitle: 'Mijozlar statistikasini yangilash',
+    aResetDesc: "Barcha mijozlarning tashriflari, sarfi, ishonchlilik foizi va chegirma indikatori nolga tushadi. Sizning umumiy hisobotingiz (bugun/oy/yil) o'zgarmaydi.",
+    aResetAll: 'Hammasini reset qilish', aResetOne: 'Reset',
+    aResetAskAll: "Barcha mijozlar statistikasi nolga tushiriladi. Davom etasizmi?", aResetAskOne: "Bu mijoz statistikasi nolga tushiriladi. Davom etasizmi?",
+    aResetOk: 'Statistika yangilandi.',
     fill: "Barcha maydonlarni to'ldiring.", loading: 'Yuklanmoqda...', error: 'Xatolik', reload: 'Qayta yuklash',
     netError: 'Internet bilan aloqa yo‘q.', serverError: 'Server javobi noto‘g‘ri.', tgOnly: 'Iltimos, ilovani Telegram bot orqali oching.',
     address: 'Manzil'
@@ -62,7 +72,7 @@ const I18N = {
     regTitle: 'Регистрация', regDesc: 'Введите данные для записи.',
     firstName: 'Имя', lastName: 'Фамилия', phone: 'Номер телефона', continue: 'Продолжить →',
     menuBook: 'Записаться', menuLists: 'Все записи', menuCabinet: 'Личный кабинет', menuPrices: 'Цены',
-    menuAi: 'AI Ассистент', menuNotifs: 'Уведомления', menuLocation: 'Локация', menuAdmin: 'Админ панель',
+    menuAi: 'AI Ассистент', menuNotifs: 'Уведомления', menuReviews: 'Отзывы', menuLocation: 'Локация', menuAdmin: 'Админ панель',
     back: 'Назад', som: 'сум', hr: 'ч', min: 'мин',
     pickDate: 'Выберите дату', pickServices: 'Выберите услуги', pickTime: 'Выберите время',
     total: 'Итого', payment: 'Способ оплаты', cash: 'Наличные', card: 'По карте',
@@ -87,8 +97,11 @@ const I18N = {
     cancelConfirm: 'Подтвердить отмену', close: 'Закрыть', cancelOk: 'Запись отменена.',
     reasonLabel: 'Причина', language: 'Язык', status_BOOKED: 'Активна', status_COMPLETED: 'Завершена', status_CANCELLED: 'Отменена', status_NO_SHOW: 'Не пришёл',
     notifTitle: 'Уведомления', noNotifs: 'Уведомлений нет.',
-    aiTitle: 'помощник jcute_snip', aiDesc: 'Задайте вопрос о волосах, бороде, уходе за кожей. Можно отправить фото.',
-    aiPlaceholder: 'Напишите вопрос...', aiImage: 'Фото отправлено',
+    aiTitle: 'помощник jcute_snip', aiDesc: 'Задайте вопрос о волосах, бороде, уходе за кожей.',
+    aiPlaceholder: 'Напишите вопрос...', aiClear: 'Очистить историю чата', aiCleared: 'История очищена.',
+    reviewsTitle: 'Отзывы', reviewsDesc: 'Оцените наш сервис. Отзывы видны всем клиентам, показывается только ваше имя.',
+    reviewPh: 'Напишите ваш отзыв...', reviewSend: 'Отправить', reviewPick: 'Выберите оценку.', reviewOk: 'Спасибо! Отзыв сохранён.',
+    noReviews: 'Отзывов пока нет.', allReviews: 'Все отзывы', outOf: 'из 5',
     adminTitle: 'Админ панель', aTotalUsers: 'Зарегистрировано', aToday: 'Принято сегодня', aMonth: 'За месяц', aYear: 'За год',
     aActive: 'Активные записи', aNoActive: 'Нет активных записей.', aArrived: 'Пришёл', aNoShow: 'Не пришёл', aPast: 'прошедшая',
     aDayTotal: 'Итого за день', aClients: 'клиентов', aDayOff: 'Назначить выходной', aDate: 'Дата', aFrom: 'С (необязательно)', aTo: 'До (необязательно)',
@@ -96,6 +109,13 @@ const I18N = {
     aDelete: 'Удалить', aBroadcast: 'Сообщение всем', aBroadcastPh: 'Текст сообщения...', aSend: 'Отправить',
     aSent: 'пользователям отправляется.', aConflict: 'активных записей попадают на это время!',
     aDayOffOk: 'Выходной назначен.', aDeleted: 'Удалено.', aStatusOk: 'Отмечено.', aAskArrived: 'Клиент пришёл?', aAskNoShow: 'Клиент не пришёл?',
+    aCancelled: 'Отменённые записи', aNoCancelled: 'Отменённых записей нет.', aReason: 'Причина',
+    aUsers: 'Зарегистрированные клиенты', aNoUsers: 'Клиентов нет.',
+    aResetTitle: 'Сброс статистики клиентов',
+    aResetDesc: 'Визиты, траты, процент надёжности и индикатор скидки всех клиентов обнулятся. Ваш общий отчёт (сегодня/месяц/год) не изменится.',
+    aResetAll: 'Сбросить всё', aResetOne: 'Сброс',
+    aResetAskAll: 'Статистика всех клиентов будет обнулена. Продолжить?', aResetAskOne: 'Статистика этого клиента будет обнулена. Продолжить?',
+    aResetOk: 'Статистика обновлена.',
     fill: 'Заполните все поля.', loading: 'Загрузка...', error: 'Ошибка', reload: 'Перезагрузить',
     netError: 'Нет связи с интернетом.', serverError: 'Неверный ответ сервера.', tgOnly: 'Пожалуйста, откройте приложение через Telegram-бота.',
     address: 'Адрес'
@@ -134,11 +154,16 @@ const fmtDate = (ds) => {
   const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
   return `${d} ${MONTHS_GEN[lang || 'uz'][m - 1]}, ${WEEKDAYS_FULL[lang || 'uz'][wd]}`;
 };
+const fmtWhen = (iso) =>
+  new Date(iso).toLocaleString(lang === 'ru' ? 'ru-RU' : 'uz-UZ', {
+    timeZone: 'Asia/Tashkent', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+  });
 const addMin = (time, mins) => {
   const [h, m] = time.split(':').map(Number);
   const v = h * 60 + m + mins;
   return `${String(Math.floor(v / 60)).padStart(2, '0')}:${String(v % 60).padStart(2, '0')}`;
 };
+const starsText = (n) => '★'.repeat(n) + '☆'.repeat(5 - n);
 
 function formatPhone(value) {
   let d = String(value || '').replace(/\D/g, '');
@@ -173,6 +198,7 @@ async function api(url, options = {}) {
   const headers = {
     'content-type': 'application/json',
     'x-telegram-init-data': tg?.initData || '',
+    'x-lang': lang || 'uz',
     ...(DEMO_ID ? { 'x-telegram-id': DEMO_ID } : {}),
     ...(options.headers || {})
   };
@@ -193,7 +219,7 @@ async function api(url, options = {}) {
   return data;
 }
 
-const state = { config: null, me: null, bk: null, aiHistory: [] };
+const state = { config: null, me: null, bk: null };
 const svc = (id) =>
   state.config.services.find((s) => s.id === id) || state.config.legacy?.[id] || null;
 const svcName = (s) => (!s ? '' : lang === 'ru' ? s.nameRu || s.name : s.name);
@@ -245,7 +271,8 @@ async function route() {
     else if (v === 'cabinet') viewCabinet();
     else if (v === 'prices') viewPrices();
     else if (v === 'notifs') await viewNotifs();
-    else if (v === 'ai') viewAi();
+    else if (v === 'reviews') await viewReviews();
+    else if (v === 'ai') await viewAi();
     else if (v === 'admin' && state.config.isAdmin) await viewAdmin();
     else viewHome();
   } catch (err) {
@@ -330,8 +357,9 @@ function viewHome() {
         <button data-nav="prices"><span class="icon">₸</span>${t('menuPrices')}</button>
         <button data-nav="ai"><span class="icon">✨</span>${t('menuAi')}</button>
         <button data-nav="notifs"><span class="icon">🔔</span>${t('menuNotifs')}${unread ? `<span class="badge">${unread}</span>` : ''}</button>
+        <button data-nav="reviews"><span class="icon">⭐</span>${t('menuReviews')}</button>
         <button id="loc"><span class="icon">⌖</span>${t('menuLocation')}</button>
-        ${isAdmin ? `<button data-nav="admin"><span class="icon">⚙</span>${t('menuAdmin')}</button>` : ''}
+        ${isAdmin ? `<button class="wide" data-nav="admin"><span class="icon">⚙</span>${t('menuAdmin')}</button>` : ''}
       </div>
       <p class="small" style="text-align:center;margin-top:14px">📍 ${esc(state.config.address)}</p>
     </section>`);
@@ -675,6 +703,7 @@ function viewCabinet() {
       lang = b.dataset.setlang;
       localStorage.setItem('jcute_lang', lang);
       document.documentElement.lang = lang;
+      loadMe().catch(() => {}); // tilni serverga ham yozib qo'yadi (Telegram xabarlari uchun)
       viewCabinet();
     };
   });
@@ -714,14 +743,11 @@ function openCancelModal(id) {
 async function viewNotifs() {
   show(`${backBtn()}<section class="card"><h2>🔔 ${t('notifTitle')}</h2><p class="small">${t('loading')}</p></section>`);
   const data = await api('/notifications');
-  const icon = { ALERT: '⚠️', LOYALTY: '🎁', DAYOFF: '📅', BROADCAST: '📢' };
+  const icon = { ALERT: '⚠️', LOYALTY: '🎁', DAYOFF: '📅', BROADCAST: '📢', SLOT: '✂️' };
   const items = data.items.map((n) => {
     const title = lang === 'ru' && n.titleRu ? n.titleRu : n.title;
     const body = lang === 'ru' && n.bodyRu ? n.bodyRu : n.body;
-    const when = new Date(n.createdAt).toLocaleString(lang === 'ru' ? 'ru-RU' : 'uz-UZ', {
-      timeZone: 'Asia/Tashkent', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
-    });
-    return `<div class="note ${n.isNew ? 'new' : ''}"><b>${icon[n.type] || '🔔'} ${esc(title)}</b><p>${esc(body)}</p><small>${when}</small></div>`;
+    return `<div class="note ${n.isNew ? 'new' : ''}"><b>${icon[n.type] || '🔔'} ${esc(title)}</b><p>${esc(body)}</p><small>${fmtWhen(n.createdAt)}</small></div>`;
   }).join('');
   show(`${backBtn()}<section class="card"><h2>🔔 ${t('notifTitle')}</h2>${items || `<p class="muted" style="margin-top:10px">${t('noNotifs')}</p>`}</section>`);
   if (state.me?.unread) {
@@ -729,45 +755,66 @@ async function viewNotifs() {
   }
 }
 
-// ===== AI Assistent =====
+// ===== Izohlar =====
+async function viewReviews() {
+  show(`${backBtn()}<section class="card"><h2>⭐ ${t('reviewsTitle')}</h2><p class="small">${t('loading')}</p></section>`);
+  const data = await api('/reviews');
+  let rating = data.mine?.rating || 0;
+
+  const list = data.items.map((r) => `
+    <div class="note"><b>${esc(r.name)} <span class="stars-s">${starsText(r.rating)}</span></b>
+      ${r.text ? `<p>${esc(r.text)}</p>` : ''}<small>${fmtWhen(r.createdAt)}</small></div>`).join('');
+
+  show(`${backBtn()}
+    <section class="card"><h2>⭐ ${t('reviewsTitle')}</h2>
+      <p class="muted">${t('reviewsDesc')}</p>
+      ${data.count ? `<p class="avg">${data.avg} <small>${t('outOf')} · ${data.count}</small></p>` : ''}
+      <div class="star-pick" id="starPick">${[1, 2, 3, 4, 5].map((n) => `<button data-star="${n}">★</button>`).join('')}</div>
+      <textarea id="rtext" maxlength="500" placeholder="${t('reviewPh')}">${esc(data.mine?.text || '')}</textarea>
+      <button class="cta" id="rsend">${t('reviewSend')}</button>
+    </section>
+    <section class="card"><h3>${t('allReviews')}</h3>${list || `<p class="muted">${t('noReviews')}</p>`}</section>`);
+
+  const paint = () => document.querySelectorAll('#starPick button').forEach((b) =>
+    b.classList.toggle('on', Number(b.dataset.star) <= rating));
+  paint();
+  $('#starPick').onclick = (e) => {
+    const b = e.target.closest('[data-star]');
+    if (!b) return;
+    rating = Number(b.dataset.star);
+    paint();
+  };
+  $('#rsend').onclick = async () => {
+    if (!rating) { toast(t('reviewPick'), true); return; }
+    $('#rsend').disabled = true;
+    try {
+      await api('/reviews', { method: 'POST', body: JSON.stringify({ rating, text: $('#rtext').value.trim() }) });
+      toast(t('reviewOk'));
+      viewReviews();
+    } catch (e) {
+      toast(e.message, true);
+      $('#rsend').disabled = false;
+    }
+  };
+}
+
+// ===== AI Assistent (faqat chat, tarix serverda saqlanadi) =====
 function aiFmt(text) {
   return esc(text)
     .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
     .replace(/^\s*[*-]\s+/gm, '• ');
 }
 
-function fileToDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const fr = new FileReader();
-    fr.onload = () => {
-      const img = new Image();
-      img.onload = () => {
-        const k = Math.min(1, 1024 / Math.max(img.width, img.height));
-        const c = document.createElement('canvas');
-        c.width = Math.round(img.width * k);
-        c.height = Math.round(img.height * k);
-        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-        resolve(c.toDataURL('image/jpeg', 0.8));
-      };
-      img.onerror = reject;
-      img.src = fr.result;
-    };
-    fr.onerror = reject;
-    fr.readAsDataURL(file);
-  });
-}
-
-function viewAi() {
+async function viewAi() {
   show(`${backBtn()}<section class="card">
     <h2>✨ ${t('aiTitle')}</h2><p class="muted">${t('aiDesc')}</p>
     <div class="chat" id="chat"></div>
-    <div id="preview"><img id="pimg" alt=""></div>
     <div class="chat-in">
-      <input type="file" id="file" accept="image/*" style="display:none">
-      <button id="pick">📷</button>
       <input id="msg" maxlength="2000" placeholder="${t('aiPlaceholder')}">
       <button class="primary" id="send">➤</button>
-    </div></section>`);
+    </div>
+    <button id="aiclear" style="width:100%;margin-top:12px;font-size:12px">🗑 ${t('aiClear')}</button>
+  </section>`);
 
   const chat = $('#chat');
   const add = (html, cls) => {
@@ -778,40 +825,24 @@ function viewAi() {
     chat.scrollTop = chat.scrollHeight;
     return d;
   };
-  state.aiHistory.forEach((h) => add(aiFmt(h.text), h.role === 'user' ? 'u' : 'a'));
 
-  let image = null;
-  $('#pick').onclick = () => $('#file').click();
-  $('#file').onchange = async (e) => {
-    const f = e.target.files[0];
-    if (!f) return;
-    try {
-      image = await fileToDataUrl(f);
-      $('#pimg').src = image;
-      $('#preview').style.display = 'block';
-    } catch { toast(t('error'), true); }
-  };
+  try {
+    const h = await api('/ai-history');
+    h.items.forEach((m) => add(m.role === 'user' ? esc(m.text) : aiFmt(m.text), m.role === 'user' ? 'u' : 'a'));
+  } catch {}
 
   const send = async () => {
     const input = $('#msg'), btn = $('#send');
     const text = input.value.trim();
     if (!text) return;
-    add((image ? `<img src="${image}" alt="">` : '') + esc(text), 'u');
-    const sentImage = image;
+    add(esc(text), 'u');
     input.value = '';
-    image = null;
-    $('#preview').style.display = 'none';
-    $('#file').value = '';
     btn.disabled = true;
     const typing = add('...', 'a typing');
     try {
-      const data = await api('/ai-assistant', {
-        method: 'POST',
-        body: JSON.stringify({ message: text, imageBase64: sentImage, lang, history: state.aiHistory.slice(-8) })
-      });
+      const data = await api('/ai-assistant', { method: 'POST', body: JSON.stringify({ message: text, lang }) });
       typing.remove();
       add(aiFmt(data.reply), 'a');
-      state.aiHistory.push({ role: 'user', text }, { role: 'model', text: data.reply });
     } catch (e) {
       typing.remove();
       add(esc(e.message), 'a');
@@ -821,12 +852,21 @@ function viewAi() {
   };
   $('#send').onclick = send;
   $('#msg').onkeydown = (e) => { if (e.key === 'Enter') send(); };
+
+  $('#aiclear').onclick = async () => {
+    try {
+      await api('/ai-history', { method: 'DELETE' });
+      chat.innerHTML = '';
+      toast(t('aiCleared'));
+    } catch (e) { toast(e.message, true); }
+  };
 }
 
 // ===== Admin panel =====
 async function viewAdmin() {
-  const [ov, act, offs] = await Promise.all([
-    api('/admin/overview'), api('/admin/active'), api('/admin/day-off')
+  const [ov, act, offs, canc, usr] = await Promise.all([
+    api('/admin/overview'), api('/admin/active'), api('/admin/day-off'),
+    api('/admin/cancelled'), api('/admin/users')
   ]);
 
   const activeHtml = act.days.length
@@ -852,6 +892,24 @@ async function viewAdmin() {
       <button class="danger" style="padding:6px 12px;font-size:12px" data-deloff="${o.date}">${t('aDelete')}</button>
     </div>`).join('');
 
+  const cancHtml = canc.items.length
+    ? canc.items.map((c) => `
+        <div class="booking">
+          <div class="top"><b>${fmtDate(c.date)} · ${c.startTime}–${c.endTime}</b></div>
+          <div class="svcs"><b style="color:var(--text)">${esc(c.firstName)} ${esc(c.lastName)}</b> · <a href="tel:${esc(c.phone)}" style="color:var(--neon)">${esc(c.phone)}</a></div>
+          <div class="svcs" style="color:var(--warn)">${t('aReason')}: ${esc(c.reason || '—')}</div>
+          <div class="svcs">${fmtWhen(c.at)}</div>
+        </div>`).join('')
+    : `<p class="muted">${t('aNoCancelled')}</p>`;
+
+  const usersHtml = usr.users.length
+    ? usr.users.map((u, i) => `
+        <div class="row-item">
+          <span><b>${i + 1}. ${esc(u.firstName)} ${esc(u.lastName)}</b><br><a href="tel:${esc(u.phone)}" style="color:var(--neon);font-size:13px">${esc(u.phone)}</a></span>
+          <button class="danger" style="padding:6px 10px;font-size:12px" data-resetuser="${u.id}">${t('aResetOne')}</button>
+        </div>`).join('')
+    : `<p class="muted">${t('aNoUsers')}</p>`;
+
   show(`${backBtn()}
     <section class="card"><h2>⚙ ${t('adminTitle')}</h2>
       <div class="stat" style="margin-top:12px">
@@ -861,6 +919,7 @@ async function viewAdmin() {
         <div class="full">${t('aYear')}<b>${ov.year}</b></div>
       </div></section>
     <section class="card"><h3>${t('aActive')} (${ov.active})</h3>${activeHtml}</section>
+    <section class="card"><h3>❗ ${t('aCancelled')}</h3>${cancHtml}</section>
     <section class="card"><h3>📅 ${t('aDayOff')}</h3>
       <label class="l">${t('aDate')}</label><input id="offDate" type="date" min="${state.config.today}">
       <div class="row"><div><label class="l">${t('aFrom')}</label><input id="offFrom" type="time"></div>
@@ -870,7 +929,11 @@ async function viewAdmin() {
       ${offsHtml ? `<h3 style="margin-top:18px">${t('aDayOffList')}</h3>${offsHtml}` : ''}</section>
     <section class="card"><h3>📢 ${t('aBroadcast')}</h3>
       <textarea id="bc" maxlength="3000" placeholder="${t('aBroadcastPh')}"></textarea>
-      <button class="cta" id="bcSend">${t('aSend')}</button></section>`);
+      <button class="cta" id="bcSend">${t('aSend')}</button></section>
+    <section class="card"><h3>🔄 ${t('aResetTitle')}</h3>
+      <p class="muted">${t('aResetDesc')}</p>
+      <button class="danger" id="resetAll" style="width:100%;margin-top:12px">${t('aResetAll')}</button></section>
+    <section class="card"><h3>👥 ${t('aUsers')} (${usr.users.length})</h3>${usersHtml}</section>`);
 
   app.querySelectorAll('[data-st]').forEach((b) => {
     b.onclick = async () => {
@@ -893,6 +956,19 @@ async function viewAdmin() {
         viewAdmin();
       } catch (e) { toast(e.message, true); }
     };
+  });
+
+  const doReset = async (userId, ask) => {
+    if (!confirm(ask)) return;
+    try {
+      await api('/admin/reset-stats', { method: 'POST', body: JSON.stringify(userId ? { userId } : {}) });
+      toast(t('aResetOk'));
+      viewAdmin();
+    } catch (e) { toast(e.message, true); }
+  };
+  $('#resetAll').onclick = () => doReset(null, t('aResetAskAll'));
+  app.querySelectorAll('[data-resetuser]').forEach((b) => {
+    b.onclick = () => doReset(b.dataset.resetuser, t('aResetAskOne'));
   });
 
   $('#offSave').onclick = async () => {

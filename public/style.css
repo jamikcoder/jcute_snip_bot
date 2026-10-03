@@ -197,3 +197,14 @@ input[type=date],input[type=time]{color-scheme:dark}
 #toast.bad{border-color:var(--danger);box-shadow:0 0 30px -6px var(--danger)}
 
 @media (prefers-reduced-motion:reduce){.bg-gradient,.bg-j,.neon i::after,.badge{animation:none}}
+
+
+/* ===== Izohlar (yulduzlar) ===== */
+.star-pick{display:flex;gap:6px;justify-content:center;margin:14px 0 4px}
+.star-pick button{font-size:32px;padding:4px 8px;background:none;border:none;color:rgba(255,255,255,.2);line-height:1;transition:transform .15s,color .15s}
+.star-pick button.on{color:#ffc857;text-shadow:0 0 14px rgba(255,200,87,.6)}
+.star-pick button:active{transform:scale(1.2)}
+.stars-s{color:#ffc857;font-size:13px;letter-spacing:1px;margin-left:6px}
+.avg{font-family:'Orbitron',sans-serif;font-size:28px;color:var(--neon);margin-top:10px}
+.avg small{font-family:'Inter',sans-serif;font-size:12px;color:var(--dim)}
+#rtext{margin-top:10px}

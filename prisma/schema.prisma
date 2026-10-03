@@ -8,16 +8,19 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  telegramId   BigInt    @unique
+  id           String      @id @default(cuid())
+  telegramId   BigInt      @unique
   firstName    String
   lastName     String
   phone        String
   birthDate    DateTime
-  loyaltyCount Int       @default(0)
+  loyaltyCount Int         @default(0)
+  lang         String      @default("uz")
   notifSeenAt  DateTime?
-  createdAt    DateTime  @default(now())
+  createdAt    DateTime    @default(now())
   bookings     Booking[]
+  review       Review?
+  aiMessages   AiMessage[]
 }
 
 model Booking {
@@ -34,6 +37,7 @@ model Booking {
   contactPhone       String
   status             BookingStatus @default(BOOKED)
   cancellationReason String?
+  countedInStats     Boolean       @default(true)
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
 
@@ -70,6 +74,27 @@ model Notification {
   body      String
   titleRu   String?
   bodyRu    String?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int
+  text      String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AiMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String
+  text      String
   createdAt DateTime @default(now())
 
   @@index([userId, createdAt])
