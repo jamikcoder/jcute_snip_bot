@@ -1,0 +1,17 @@
+// src\20260801000000_v2_features
+import 'dotenv/config';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
+// DATABASE_URL berilmagan bo'lsa, avtomatik baza fayli ishlatiladi
+if (!process.env.DATABASE_URL) {
+  process.env.DATABASE_URL = 'file:' + path.join(root, 'prisma', 'jcute_snip.db').replace(/\\/g, '/');
+  console.warn("DATABASE_URL topilmadi, standart baza ishlatilmoqda:", process.env.DATABASE_URL);
+}
+
+// Admin ID berilmagan bo'lsa, sizning ID ishlatiladi
+if (!process.env.ADMIN_TELEGRAM_ID) {
+  process.env.ADMIN_TELEGRAM_ID = '719139730';
+}

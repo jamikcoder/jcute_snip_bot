@@ -14,6 +14,8 @@ model User {
   lastName     String
   phone        String
   birthDate    DateTime
+  loyaltyCount Int       @default(0)
+  notifSeenAt  DateTime?
   createdAt    DateTime  @default(now())
   bookings     Booking[]
 }
@@ -55,5 +57,20 @@ model DayOff {
   id        String   @id @default(cuid())
   date      DateTime @unique
   reason    String
+  startTime String?
+  endTime   String?
   createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String?
+  type      String
+  title     String
+  body      String
+  titleRu   String?
+  bodyRu    String?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
 }

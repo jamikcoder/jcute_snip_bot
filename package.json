@@ -1,14 +1,12 @@
 {
   "name": "jcute-snip-bot",
-  "version": "1.0.0",
+  "version": "2.0.1",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node --watch src/server.js",
-    "start": "node src/server.js",
-    "bot": "node src/bot.js",
+    "dev": "node --watch src/start.js",
+    "start": "node src/start.js",
     "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev --name init",
     "db:studio": "prisma studio"
   },
   "dependencies": {
@@ -17,9 +15,7 @@
     "dotenv": "^16.4.7",
     "express": "^4.22.3",
     "node-cron": "^4.0.7",
+    "prisma": "^6.1.0",
     "telegraf": "^4.16.3"
-  },
-  "devDependencies": {
-    "prisma": "^6.1.0"
   }
 }
