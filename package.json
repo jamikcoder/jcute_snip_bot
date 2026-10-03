@@ -1,11 +1,12 @@
 {
   "name": "jcute-snip-bot",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "node --watch src/start.js",
     "start": "node src/start.js",
+    "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:studio": "prisma studio"
   },
